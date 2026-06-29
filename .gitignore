@@ -1,0 +1,7 @@
+node_modules/
+.margin/
+result
+result-*
+*.vsix
+*.tgz
+npm-debug.log

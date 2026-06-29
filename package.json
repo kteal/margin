@@ -1,0 +1,105 @@
+{
+  "name": "margin",
+  "displayName": "Margin",
+  "description": "Private, project-local notes that render like comments without changing source files.",
+  "version": "0.0.1",
+  "publisher": "local",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/kteal/margin.git"
+  },
+  "engines": {
+    "vscode": "^1.88.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [
+    "onCommand:margin.addNote",
+    "onCommand:margin.editNote",
+    "onCommand:margin.deleteNote",
+    "onCommand:margin.toggleNotes",
+    "onCommand:margin.searchNotes",
+    "onStartupFinished"
+  ],
+  "main": "./extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "margin.addNote",
+        "title": "Margin: Add Note",
+        "category": "Margin"
+      },
+      {
+        "command": "margin.editNote",
+        "title": "Margin: Edit Note",
+        "category": "Margin"
+      },
+      {
+        "command": "margin.deleteNote",
+        "title": "Margin: Delete Note",
+        "category": "Margin"
+      },
+      {
+        "command": "margin.toggleNotes",
+        "title": "Margin: Toggle Notes",
+        "category": "Margin"
+      },
+      {
+        "command": "margin.searchNotes",
+        "title": "Margin: Search Notes",
+        "category": "Margin"
+      }
+    ],
+    "keybindings": [
+      {
+        "command": "margin.toggleNotes",
+        "key": "ctrl+alt+m",
+        "mac": "cmd+alt+m",
+        "when": "editorTextFocus"
+      },
+      {
+        "command": "margin.addNote",
+        "key": "ctrl+alt+n",
+        "mac": "cmd+alt+n",
+        "when": "editorTextFocus"
+      }
+    ],
+    "configuration": {
+      "title": "Margin",
+      "properties": {
+        "margin.notes.visibleByDefault": {
+          "type": "boolean",
+          "default": true,
+          "description": "Controls whether Margin notes are visible before the workspace-level toggle has been used."
+        },
+        "margin.notes.storageDirectory": {
+          "type": "string",
+          "default": ".margin",
+          "description": "Workspace-relative directory where Margin stores private note data."
+        },
+        "margin.notes.addToGitExclude": {
+          "type": "boolean",
+          "default": true,
+          "description": "Adds the Margin storage directory to .git/info/exclude when possible."
+        },
+        "margin.notes.inlinePrefix": {
+          "type": "string",
+          "default": "margin:",
+          "description": "Text inserted after the language comment marker before each inline note."
+        },
+        "margin.notes.inlineMaxLength": {
+          "type": "number",
+          "default": 120,
+          "minimum": 20,
+          "maximum": 400,
+          "description": "Maximum number of characters shown inline before the note is truncated."
+        }
+      }
+    }
+  },
+  "scripts": {
+    "check": "node --check extension.js"
+  }
+}
