@@ -55,7 +55,7 @@ nix build .#vsix
 Install the generated extension:
 
 ```sh
-code --install-extension result/margin-0.0.1.vsix
+code --install-extension result/margin-0.0.2.vsix
 ```
 
 You can also download the VSIX artifact from successful CI runs.

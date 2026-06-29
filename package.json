@@ -2,7 +2,7 @@
   "name": "margin",
   "displayName": "Margin",
   "description": "Private, project-local notes that render like comments without changing source files.",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "publisher": "local",
   "license": "MIT",
   "repository": {

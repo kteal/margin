@@ -276,7 +276,7 @@ function scheduleRefresh(): void {
   }
   refreshTimer = setTimeout(() => {
     refreshTimer = undefined;
-    refreshActiveEditor().catch(reportError);
+    refreshVisibleEditors().catch(reportError);
   }, 50);
 }
 
@@ -341,12 +341,19 @@ async function getNotesNearCursor(showMessages: boolean): Promise<{
   return { editor, workspaceFolder, store, notes: nearby };
 }
 
-async function refreshActiveEditor(): Promise<void> {
-  const editor = vscode.window.activeTextEditor;
-  if (!editor) {
+async function refreshVisibleEditors(): Promise<void> {
+  if (!getNotesVisible()) {
+    clearAllDecorations();
     return;
   }
-  if (!getNotesVisible()) {
+
+  for (const editor of vscode.window.visibleTextEditors) {
+    await refreshEditor(editor);
+  }
+}
+
+async function refreshEditor(editor: vscode.TextEditor): Promise<void> {
+  if (editor.document.uri.scheme !== 'file') {
     clearDecorations(editor);
     return;
   }
