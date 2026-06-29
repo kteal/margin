@@ -1,9 +1,9 @@
 import * as crypto from 'crypto';
 import * as vscode from 'vscode';
 
-import { createAnchor, rangeContainsOrTouchesLine, resolveAnchor, updateAnchorFromResolution } from './anchors';
+import { createAnchor, createLineAnchor, rangeContainsOrTouchesLine, resolveAnchor, updateAnchorFromResolution } from './anchors';
 import { buildHover, formatInlineComment } from './comments';
-import { VISIBLE_STATE_KEY } from './constants';
+import { NOTE_AT_CURSOR_CONTEXT, VISIBLE_STATE_KEY } from './constants';
 import { getGitMetadata } from './git';
 import { collectAllNoteEntries, formatLocation, openNoteLocation, resolveNoteLocation } from './search';
 import { readStore, tryEnsureGitExclude, writeStore } from './storage';
@@ -13,6 +13,7 @@ import { normalizeNoteText, relativePath, trimForUi, validateNoteText } from './
 let contextRef: vscode.ExtensionContext;
 let inlineDecoration: vscode.TextEditorDecorationType;
 let refreshTimer: NodeJS.Timeout | undefined;
+let noteContextTimer: NodeJS.Timeout | undefined;
 
 export function activate(context: vscode.ExtensionContext): void {
   contextRef = context;
@@ -29,13 +30,20 @@ export function activate(context: vscode.ExtensionContext): void {
   registerCommand(context, 'margin.addNote', addNote);
   registerCommand(context, 'margin.editNote', editNote);
   registerCommand(context, 'margin.deleteNote', deleteNote);
+  registerCommand(context, 'margin.moveNoteUp', moveNoteUp);
+  registerCommand(context, 'margin.moveNoteDown', moveNoteDown);
   registerCommand(context, 'margin.toggleNotes', toggleNotes);
   registerCommand(context, 'margin.searchNotes', searchNotes);
 
-  context.subscriptions.push(vscode.window.onDidChangeActiveTextEditor(() => scheduleRefresh()));
+  context.subscriptions.push(vscode.window.onDidChangeActiveTextEditor(() => {
+    scheduleRefresh();
+    scheduleNoteContextRefresh();
+  }));
+  context.subscriptions.push(vscode.window.onDidChangeTextEditorSelection(() => scheduleNoteContextRefresh()));
   context.subscriptions.push(vscode.workspace.onDidChangeTextDocument((event) => {
     if (event.document === vscode.window.activeTextEditor?.document) {
       scheduleRefresh();
+      scheduleNoteContextRefresh();
     }
   }));
   context.subscriptions.push(vscode.workspace.onDidSaveTextDocument((document) => {
@@ -48,6 +56,7 @@ export function activate(context: vscode.ExtensionContext): void {
   }));
 
   scheduleRefresh();
+  scheduleNoteContextRefresh();
 }
 
 export function deactivate(): void {}
@@ -99,6 +108,7 @@ async function addNote(): Promise<void> {
   await writeStore(workspaceFolder, store);
   await tryEnsureGitExclude(contextRef, workspaceFolder);
   scheduleRefresh();
+  scheduleNoteContextRefresh();
 }
 
 async function editNote(): Promise<void> {
@@ -136,6 +146,48 @@ async function deleteNote(): Promise<void> {
   target.store.notes = target.store.notes.filter((note) => note.id !== target.note.id);
   await writeStore(target.workspaceFolder, target.store);
   scheduleRefresh();
+  scheduleNoteContextRefresh();
+}
+
+async function moveNoteUp(): Promise<void> {
+  await moveNote(-1);
+}
+
+async function moveNoteDown(): Promise<void> {
+  await moveNote(1);
+}
+
+async function moveNote(direction: -1 | 1): Promise<void> {
+  const target = await pickNoteNearCursor(direction === -1 ? 'Move Margin note up' : 'Move Margin note down');
+  const editor = vscode.window.activeTextEditor;
+  if (!target || !editor) {
+    return;
+  }
+
+  const resolved = resolveAnchor(editor.document, target.note.anchor);
+  if (!resolved) {
+    vscode.window.showInformationMessage('Margin could not resolve this note location.');
+    return;
+  }
+
+  const targetLine = findAdjacentCodeLine(editor.document, resolved.range.end.line, direction);
+  if (targetLine === undefined) {
+    vscode.window.showInformationMessage(direction === -1 ? 'No code line above this note.' : 'No code line below this note.');
+    return;
+  }
+
+  target.note.anchor = createLineAnchor(editor.document, targetLine);
+  target.note.updatedAt = new Date().toISOString();
+  await writeStore(target.workspaceFolder, target.store);
+
+  const lineEnd = editor.document.lineAt(targetLine).range.end.character;
+  const character = Math.min(editor.selection.active.character, lineEnd);
+  const position = new vscode.Position(targetLine, character);
+  editor.selection = new vscode.Selection(position, position);
+  editor.revealRange(new vscode.Range(position, position), vscode.TextEditorRevealType.InCenterIfOutsideViewport);
+
+  scheduleRefresh();
+  scheduleNoteContextRefresh();
 }
 
 async function toggleNotes(): Promise<void> {
@@ -143,9 +195,11 @@ async function toggleNotes(): Promise<void> {
   await contextRef.workspaceState.update(VISIBLE_STATE_KEY, next);
   if (next) {
     scheduleRefresh();
+    scheduleNoteContextRefresh();
     vscode.window.showInformationMessage('Margin notes visible.');
   } else {
-    clearDecorations();
+    clearAllDecorations();
+    await vscode.commands.executeCommand('setContext', NOTE_AT_CURSOR_CONTEXT, false);
     vscode.window.showInformationMessage('Margin notes hidden.');
   }
 }
@@ -195,23 +249,14 @@ async function pickNoteNearCursor(title: string): Promise<NoteEntry | undefined>
     return undefined;
   }
 
-  const store = await readStore(workspaceFolder);
-  const file = relativePath(workspaceFolder.uri.fsPath, editor.document.uri.fsPath);
-  const notes = store.notes.filter((note) => note.file === file);
-  const resolved = notes
-    .map((note) => ({ note, resolved: resolveAnchor(editor.document, note.anchor) }))
-    .filter((item): item is { note: MarginNote; resolved: ResolvedAnchor } => Boolean(item.resolved));
-  const cursorLine = editor.selection.active.line;
-  const nearby = resolved.filter((item) => rangeContainsOrTouchesLine(item.resolved.range, cursorLine));
-
-  if (nearby.length === 0) {
-    vscode.window.showInformationMessage('No Margin note found at the cursor.');
+  const nearbyNotes = await getNotesNearCursor(true);
+  if (!nearbyNotes) {
     return undefined;
   }
 
-  let selected = nearby[0];
-  if (nearby.length > 1) {
-    const picked = await vscode.window.showQuickPick(nearby.map((item) => ({
+  let selected = nearbyNotes.notes[0];
+  if (nearbyNotes.notes.length > 1) {
+    const picked = await vscode.window.showQuickPick(nearbyNotes.notes.map((item) => ({
       label: trimForUi(item.note.text, 90),
       description: `${item.resolved.range.start.line + 1}`,
       item
@@ -222,7 +267,7 @@ async function pickNoteNearCursor(title: string): Promise<NoteEntry | undefined>
     selected = picked.item;
   }
 
-  return { workspaceFolder, store, note: selected.note };
+  return { workspaceFolder: nearbyNotes.workspaceFolder, store: nearbyNotes.store, note: selected.note };
 }
 
 function scheduleRefresh(): void {
@@ -233,6 +278,67 @@ function scheduleRefresh(): void {
     refreshTimer = undefined;
     refreshActiveEditor().catch(reportError);
   }, 50);
+}
+
+function scheduleNoteContextRefresh(): void {
+  if (noteContextTimer) {
+    clearTimeout(noteContextTimer);
+  }
+  noteContextTimer = setTimeout(() => {
+    noteContextTimer = undefined;
+    updateNoteAtCursorContext().catch(reportError);
+  }, 50);
+}
+
+async function updateNoteAtCursorContext(): Promise<void> {
+  if (!getNotesVisible()) {
+    await vscode.commands.executeCommand('setContext', NOTE_AT_CURSOR_CONTEXT, false);
+    return;
+  }
+
+  const nearbyNotes = await getNotesNearCursor(false);
+  await vscode.commands.executeCommand('setContext', NOTE_AT_CURSOR_CONTEXT, Boolean(nearbyNotes?.notes.length));
+}
+
+async function getNotesNearCursor(showMessages: boolean): Promise<{
+  editor: vscode.TextEditor;
+  workspaceFolder: vscode.WorkspaceFolder;
+  store: NotesStore;
+  notes: Array<{ note: MarginNote; resolved: ResolvedAnchor }>;
+} | undefined> {
+  const editor = vscode.window.activeTextEditor;
+  if (!editor) {
+    if (showMessages) {
+      vscode.window.showInformationMessage('Open a source file first.');
+    }
+    return undefined;
+  }
+
+  const workspaceFolder = vscode.workspace.getWorkspaceFolder(editor.document.uri);
+  if (!workspaceFolder) {
+    if (showMessages) {
+      vscode.window.showInformationMessage('Margin notes need a workspace folder.');
+    }
+    return undefined;
+  }
+
+  const store = await readStore(workspaceFolder);
+  const file = relativePath(workspaceFolder.uri.fsPath, editor.document.uri.fsPath);
+  const notes = store.notes.filter((note) => note.file === file);
+  const resolved = notes
+    .map((note) => ({ note, resolved: resolveAnchor(editor.document, note.anchor) }))
+    .filter((item): item is { note: MarginNote; resolved: ResolvedAnchor } => Boolean(item.resolved));
+  const cursorLine = editor.selection.active.line;
+  const nearby = resolved.filter((item) => rangeContainsOrTouchesLine(item.resolved.range, cursorLine));
+
+  if (nearby.length === 0) {
+    if (showMessages) {
+      vscode.window.showInformationMessage('No Margin note found at the cursor.');
+    }
+    return undefined;
+  }
+
+  return { editor, workspaceFolder, store, notes: nearby };
 }
 
 async function refreshActiveEditor(): Promise<void> {
@@ -318,9 +424,26 @@ function clearDecorations(editor = vscode.window.activeTextEditor): void {
   }
 }
 
+function clearAllDecorations(): void {
+  for (const editor of vscode.window.visibleTextEditors) {
+    clearDecorations(editor);
+  }
+}
+
 function getNotesVisible(): boolean {
   const configured = vscode.workspace.getConfiguration('margin.notes').get('visibleByDefault', true);
   return contextRef.workspaceState.get(VISIBLE_STATE_KEY, configured);
+}
+
+function findAdjacentCodeLine(document: vscode.TextDocument, currentLine: number, direction: -1 | 1): number | undefined {
+  let line = currentLine + direction;
+  while (line >= 0 && line < document.lineCount) {
+    if (document.lineAt(line).text.trim()) {
+      return line;
+    }
+    line += direction;
+  }
+  return undefined;
 }
 
 function reportError(error: unknown): void {

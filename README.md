@@ -20,19 +20,23 @@ It is meant for personal context: the thing you would have written as a comment,
 - Search notes with `Margin: Search Notes` and jump back to source.
 - Track the git branch and commit where a note was created.
 - Relocate notes after edits when the original line or selection can still be found.
+- Move visible notes up and down with the keyboard.
 
 ## Commands
 
 - `Margin: Add Note`
 - `Margin: Edit Note`
 - `Margin: Delete Note`
+- `Margin: Move Note Up`
+- `Margin: Move Note Down`
 - `Margin: Toggle Notes`
 - `Margin: Search Notes`
 
 ## Default Keybindings
 
-- Toggle notes: `Ctrl+Alt+M` (`Cmd+Alt+M` on macOS)
+- Toggle notes: `Alt+M` (`Cmd+Alt+M` on macOS)
 - Add note: `Ctrl+Alt+N` (`Cmd+Alt+N` on macOS)
+- Move note up/down: `Alt+Up` / `Alt+Down` when the cursor is on or near a visible Margin note
 
 You can override these in VS Code's Keyboard Shortcuts editor.
 

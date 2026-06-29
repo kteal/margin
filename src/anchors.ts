@@ -21,6 +21,18 @@ export function createAnchor(document: vscode.TextDocument, selection: vscode.Se
   };
 }
 
+export function createLineAnchor(document: vscode.TextDocument, line: number): NoteAnchor {
+  const range = document.lineAt(line).range;
+  return {
+    kind: 'line',
+    start: serializePosition(range.start),
+    end: serializePosition(range.end),
+    originalText: document.getText(range),
+    contextBefore: collectContext(document, line, -1),
+    contextAfter: collectContext(document, line, 1)
+  };
+}
+
 export function resolveAnchor(document: vscode.TextDocument, anchor: NoteAnchor | undefined): ResolvedAnchor | undefined {
   if (!anchor) {
     return undefined;

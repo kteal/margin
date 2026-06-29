@@ -19,6 +19,8 @@
     "onCommand:margin.addNote",
     "onCommand:margin.editNote",
     "onCommand:margin.deleteNote",
+    "onCommand:margin.moveNoteUp",
+    "onCommand:margin.moveNoteDown",
     "onCommand:margin.toggleNotes",
     "onCommand:margin.searchNotes",
     "onStartupFinished"
@@ -42,6 +44,16 @@
         "category": "Margin"
       },
       {
+        "command": "margin.moveNoteUp",
+        "title": "Margin: Move Note Up",
+        "category": "Margin"
+      },
+      {
+        "command": "margin.moveNoteDown",
+        "title": "Margin: Move Note Down",
+        "category": "Margin"
+      },
+      {
         "command": "margin.toggleNotes",
         "title": "Margin: Toggle Notes",
         "category": "Margin"
@@ -55,7 +67,7 @@
     "keybindings": [
       {
         "command": "margin.toggleNotes",
-        "key": "ctrl+alt+m",
+        "key": "alt+m",
         "mac": "cmd+alt+m",
         "when": "editorTextFocus"
       },
@@ -64,6 +76,18 @@
         "key": "ctrl+alt+n",
         "mac": "cmd+alt+n",
         "when": "editorTextFocus"
+      },
+      {
+        "command": "margin.moveNoteUp",
+        "key": "alt+up",
+        "mac": "alt+up",
+        "when": "editorTextFocus && margin.noteAtCursor"
+      },
+      {
+        "command": "margin.moveNoteDown",
+        "key": "alt+down",
+        "mac": "alt+down",
+        "when": "editorTextFocus && margin.noteAtCursor"
       }
     ],
     "configuration": {
