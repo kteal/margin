@@ -11,6 +11,28 @@ permissions:
   contents: read
 
 jobs:
+  pr-title:
+    name: PR title
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+
+    steps:
+      - name: Check conventional commit title
+        env:
+          PR_TITLE: ${{ github.event.pull_request.title }}
+        run: |
+          node <<'NODE'
+          const title = process.env.PR_TITLE || '';
+          const pattern = /^(build|chore|ci|docs|feat|fix|perf|refactor|revert|style|test)(\([a-z0-9._-]+\))?!?: .+/;
+
+          if (!pattern.test(title)) {
+            console.error(`Pull request title must follow Conventional Commits: ${title}`);
+            console.error('Example: feat: add note search');
+            console.error('Example: ci(deps): bump actions/checkout from 4 to 7');
+            process.exit(1);
+          }
+          NODE
+
   node:
     name: Node checks
     runs-on: ubuntu-latest

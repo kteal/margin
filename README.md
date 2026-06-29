@@ -1,9 +1,10 @@
 # Margin
 
 [![CI](https://github.com/kteal/margin/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/kteal/margin/actions/workflows/ci.yml?query=branch%3Amain)
-[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-[![Nix flake](https://img.shields.io/badge/nix-flake-5277C3.svg)](flake.nix)
-[![VS Code](https://img.shields.io/badge/VS%20Code-%5E1.88-007ACC.svg)](package.json)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue?logo=opensourceinitiative)](LICENSE)
+![Nix Flake](https://img.shields.io/badge/Nix-Flake-5277C3?logo=nixos)
+![VS Code](https://img.shields.io/badge/VS%20Code-%5E1.88-007ACC?logo=visualstudiocode)
+![JavaScript](https://img.shields.io/badge/JavaScript-ES2022-F7DF1E?logo=javascript&logoColor=black)
 
 Margin is a VS Code extension for private, project-local code notes. Notes render like comments in the editor, but they are stored outside source files so they do not appear in commits or pull requests.
 
