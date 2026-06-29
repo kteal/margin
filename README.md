@@ -1,6 +1,13 @@
 # Margin
 
+[![CI](https://github.com/kteal/margin/actions/workflows/ci.yml/badge.svg)](https://github.com/kteal/margin/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+[![Nix flake](https://img.shields.io/badge/nix-flake-5277C3.svg)](flake.nix)
+[![VS Code](https://img.shields.io/badge/VS%20Code-%5E1.88-007ACC.svg)](package.json)
+
 Margin is a VS Code extension for private, project-local code notes. Notes render like comments in the editor, but they are stored outside source files so they do not appear in commits or pull requests.
+
+It is meant for personal context: the thing you would have written as a comment, but do not want to commit, publish, or send through code review.
 
 ## Features
 
@@ -32,6 +39,22 @@ You can override these in VS Code's Keyboard Shortcuts editor.
 
 Margin stores notes in `.margin/notes.json` inside each workspace folder. The first time a note is saved in a git repository, Margin tries to add `.margin/` to `.git/info/exclude`. That keeps the storage private to your clone without changing the repository's tracked `.gitignore`.
 
+## Install Locally
+
+Build a VSIX with Nix:
+
+```sh
+nix build .#vsix
+```
+
+Install the generated extension:
+
+```sh
+code --install-extension result/margin-0.0.1.vsix
+```
+
+You can also download the VSIX artifact from successful CI runs.
+
 ## Development
 
 Open this folder in VS Code and run the extension with the Extension Development Host.
@@ -59,3 +82,7 @@ Enter a development shell with Node and `vsce`:
 ```sh
 nix develop
 ```
+
+## GitHub Actions
+
+CI runs on pushes, pull requests, and manual dispatch. It checks extension syntax, verifies package contents, validates the flake, builds the Nix extension package, and builds/uploads the VSIX artifact.

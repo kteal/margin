@@ -1,0 +1,15 @@
+.github/
+.vscode/
+.git/
+.agents/
+.codex/
+.margin/
+.vscodeignore
+flake.nix
+flake.lock
+result
+result-*
+*.vsix
+*.tgz
+node_modules/
+npm-debug.log

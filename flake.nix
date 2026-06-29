@@ -46,7 +46,7 @@
 
             extension_dir="$out/share/vscode/extensions/${uniqueId}"
             mkdir -p "$extension_dir"
-            cp package.json extension.js README.md "$extension_dir/"
+            cp package.json extension.js README.md LICENSE "$extension_dir/"
 
             runHook postInstall
           '';

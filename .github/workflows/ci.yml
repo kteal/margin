@@ -1,0 +1,58 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  node:
+    name: Node checks
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Check extension syntax
+        run: npm run check
+
+      - name: Check npm package contents
+        run: npm pack --dry-run
+
+  nix:
+    name: Nix build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Install Nix
+        uses: DeterminateSystems/nix-installer-action@v17
+
+      - name: Check flake
+        run: nix flake check --print-build-logs
+
+      - name: Build extension package
+        run: nix build --print-build-logs
+
+      - name: Build VSIX
+        run: nix build .#vsix --print-build-logs
+
+      - name: Upload VSIX
+        uses: actions/upload-artifact@v4
+        with:
+          name: margin-vsix
+          path: result/*.vsix
+          if-no-files-found: error
