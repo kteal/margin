@@ -36,7 +36,7 @@ It is meant for personal context: the thing you would have written as a comment,
 
 - Toggle notes: `Alt+M` or `Ctrl+Alt+M` (`Cmd+Alt+M` or `Ctrl+Alt+M` on macOS)
 - Add note: `Ctrl+Alt+N` (`Cmd+Alt+N` on macOS)
-- Move note up/down: `Alt+Up` / `Alt+Down` when the cursor is on or near a visible Margin note
+- Move note up/down: `Alt+Up` / `Alt+Down` when the cursor is on the line displaying a visible Margin note
 
 You can override these in VS Code's Keyboard Shortcuts editor.
 
@@ -55,7 +55,7 @@ nix build .#vsix
 Install the generated extension:
 
 ```sh
-code --install-extension result/margin-0.0.3.vsix
+code --install-extension result/margin-0.0.4.vsix
 ```
 
 You can also download the VSIX artifact from successful CI runs.
