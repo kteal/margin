@@ -30,7 +30,7 @@
           src = pkgs.lib.cleanSource ./.;
 
           nodejs = pkgs.nodejs_22;
-          npmDepsHash = "sha256-oWiBKupAVXPjYbqbudDv5dImYFO7xZffS7nivDCDQsI=";
+          npmDepsHash = "sha256-GMxOJ7JROKvHAfFLsbcF2/OayKqkO6NfLyL8oA+e/UM=";
           npmBuildScript = "compile";
 
           dontConfigure = true;
@@ -71,7 +71,7 @@
 
           src = pkgs.lib.cleanSource ./.;
           nodejs = pkgs.nodejs_22;
-          npmDepsHash = "sha256-oWiBKupAVXPjYbqbudDv5dImYFO7xZffS7nivDCDQsI=";
+          npmDepsHash = "sha256-GMxOJ7JROKvHAfFLsbcF2/OayKqkO6NfLyL8oA+e/UM=";
           npmBuildScript = "compile";
 
           nativeBuildInputs = [ pkgs.vsce ];

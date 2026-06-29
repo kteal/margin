@@ -2,7 +2,7 @@
   "name": "margin",
   "displayName": "Margin",
   "description": "Private, project-local notes that render like comments without changing source files.",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "publisher": "local",
   "license": "MIT",
   "repository": {
@@ -68,8 +68,12 @@
       {
         "command": "margin.toggleNotes",
         "key": "alt+m",
-        "mac": "cmd+alt+m",
-        "when": "editorTextFocus"
+        "mac": "cmd+alt+m"
+      },
+      {
+        "command": "margin.toggleNotes",
+        "key": "ctrl+alt+m",
+        "mac": "ctrl+alt+m"
       },
       {
         "command": "margin.addNote",
