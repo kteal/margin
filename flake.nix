@@ -23,21 +23,22 @@
           manifest = builtins.fromJSON (builtins.readFile ./package.json);
           uniqueId = "${manifest.publisher}.${manifest.name}";
         in
-        pkgs.stdenvNoCC.mkDerivation {
+        pkgs.buildNpmPackage {
           pname = "vscode-extension-${manifest.name}";
           inherit (manifest) version;
 
           src = pkgs.lib.cleanSource ./.;
 
-          nativeBuildInputs = [ pkgs.nodejs_22 ];
+          nodejs = pkgs.nodejs_22;
+          npmDepsHash = "sha256-KfCTuXz2ULzb4Nc4O2RapzpEwmo3xVpEMmG3BhI4vSU=";
+          npmBuildScript = "compile";
 
           dontConfigure = true;
-          dontBuild = true;
 
           doCheck = true;
           checkPhase = ''
             runHook preCheck
-            node --check extension.js
+            npm run check
             runHook postCheck
           '';
 
@@ -46,7 +47,8 @@
 
             extension_dir="$out/share/vscode/extensions/${uniqueId}"
             mkdir -p "$extension_dir"
-            cp package.json extension.js README.md LICENSE "$extension_dir/"
+            cp package.json README.md LICENSE "$extension_dir/"
+            cp -R out "$extension_dir/out"
 
             runHook postInstall
           '';
@@ -55,7 +57,6 @@
             description = manifest.description;
             homepage = "https://github.com/kteal/margin";
             license = pkgs.lib.licenses.mit;
-            platforms = pkgs.lib.platforms.all;
           };
         };
 
@@ -64,27 +65,22 @@
         let
           manifest = builtins.fromJSON (builtins.readFile ./package.json);
         in
-        pkgs.stdenvNoCC.mkDerivation {
+        pkgs.buildNpmPackage {
           pname = "${manifest.name}-vsix";
           inherit (manifest) version;
 
           src = pkgs.lib.cleanSource ./.;
+          nodejs = pkgs.nodejs_22;
+          npmDepsHash = "sha256-KfCTuXz2ULzb4Nc4O2RapzpEwmo3xVpEMmG3BhI4vSU=";
+          npmBuildScript = "compile";
 
-          nativeBuildInputs = [
-            pkgs.nodejs_22
-            pkgs.vsce
-          ];
+          nativeBuildInputs = [ pkgs.vsce ];
 
           dontConfigure = true;
 
-          buildPhase = ''
-            runHook preBuild
-            vsce package --no-dependencies --out ${manifest.name}-${manifest.version}.vsix
-            runHook postBuild
-          '';
-
           installPhase = ''
             runHook preInstall
+            vsce package --no-dependencies --out ${manifest.name}-${manifest.version}.vsix
             mkdir -p "$out"
             cp ${manifest.name}-${manifest.version}.vsix "$out/"
             runHook postInstall
@@ -94,7 +90,6 @@
             description = "VSIX package for the Margin VS Code extension";
             homepage = "https://github.com/kteal/margin";
             license = pkgs.lib.licenses.mit;
-            platforms = pkgs.lib.platforms.all;
           };
         };
     in
@@ -132,7 +127,7 @@
         let
           pkgs = import nixpkgs { inherit system; };
         in
-        pkgs.nixfmt-rfc-style
+        pkgs.nixfmt
       );
     };
 }

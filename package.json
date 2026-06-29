@@ -23,7 +23,7 @@
     "onCommand:margin.searchNotes",
     "onStartupFinished"
   ],
-  "main": "./extension.js",
+  "main": "./out/extension.js",
   "contributes": {
     "commands": [
       {
@@ -100,6 +100,12 @@
     }
   },
   "scripts": {
-    "check": "node --check extension.js"
+    "compile": "tsc -p .",
+    "check": "npm run compile && node --check out/extension.js"
+  },
+  "devDependencies": {
+    "@types/node": "^22.20.0",
+    "@types/vscode": "1.88.0",
+    "typescript": "^6.0.3"
   }
 }

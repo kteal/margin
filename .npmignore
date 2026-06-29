@@ -4,6 +4,9 @@
 .agents/
 .codex/
 .margin/
+src/
+tsconfig.json
+package-lock.json
 .vscodeignore
 flake.nix
 flake.lock

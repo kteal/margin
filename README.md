@@ -64,6 +64,12 @@ Open this folder in VS Code and run the extension with the Extension Development
 npm run check
 ```
 
+Compile TypeScript:
+
+```sh
+npm run compile
+```
+
 ## Nix
 
 Build the extension package:

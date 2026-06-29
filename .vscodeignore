@@ -1,8 +1,12 @@
 .vscode/**
+.github/**
 .git/**
 .agents/**
 .codex/**
 .margin/**
+src/**
+tsconfig.json
+package-lock.json
 flake.nix
 flake.lock
 .gitignore
