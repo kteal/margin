@@ -1,6 +1,6 @@
 # Margin
 
-[![CI](https://github.com/kteal/margin/actions/workflows/ci.yml/badge.svg)](https://github.com/kteal/margin/actions/workflows/ci.yml)
+[![CI](https://github.com/kteal/margin/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/kteal/margin/actions/workflows/ci.yml?query=branch%3Amain)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![Nix flake](https://img.shields.io/badge/nix-flake-5277C3.svg)](flake.nix)
 [![VS Code](https://img.shields.io/badge/VS%20Code-%5E1.88-007ACC.svg)](package.json)
