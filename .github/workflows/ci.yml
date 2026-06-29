@@ -51,7 +51,7 @@ jobs:
         run: nix build .#vsix --print-build-logs
 
       - name: Upload VSIX
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: margin-vsix
           path: result/*.vsix
